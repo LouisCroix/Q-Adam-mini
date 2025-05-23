@@ -1,0 +1,957 @@
+Starting script
+Initializing wandb
+
+pad_token_id: 32000
+
+----------------------------------------
+Prepare Model for Int8 Training
+----------------------------------------
+Model parameters dtype: torch.uint8
+
+Memory allocated before model put to GPU: 0, Unit: MB, same below.
+Memory allocated after model put to GPU: 1676
+Memory ocupied by model: 1676
+The otherwise_dtype is torch.float32, which is used for all tensors not quantized in this optimizer.
+Adam-mini found the param block with name: model.embed_tokens.weight torch.Size([32001, 2048])
+Adam-mini found the param block with name: model.layers.0.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.0.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.0.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.0.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.0.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.0.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.0.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.0.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.0.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.1.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.1.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.1.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.1.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.1.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.1.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.1.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.1.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.1.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.2.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.2.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.2.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.2.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.2.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.2.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.2.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.2.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.2.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.3.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.3.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.3.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.3.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.3.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.3.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.3.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.3.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.3.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.4.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.4.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.4.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.4.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.4.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.4.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.4.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.4.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.4.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.5.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.5.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.5.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.5.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.5.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.5.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.5.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.5.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.5.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.6.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.6.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.6.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.6.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.6.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.6.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.6.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.6.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.6.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.7.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.7.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.7.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.7.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.7.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.7.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.7.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.7.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.7.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.8.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.8.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.8.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.8.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.8.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.8.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.8.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.8.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.8.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.9.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.9.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.9.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.9.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.9.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.9.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.9.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.9.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.9.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.10.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.10.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.10.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.10.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.10.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.10.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.10.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.10.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.10.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.11.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.11.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.11.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.11.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.11.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.11.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.11.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.11.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.11.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.12.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.12.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.12.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.12.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.12.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.12.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.12.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.12.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.12.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.13.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.13.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.13.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.13.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.13.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.13.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.13.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.13.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.13.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.14.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.14.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.14.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.14.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.14.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.14.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.14.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.14.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.14.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.15.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.15.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.15.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.15.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.15.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.15.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.15.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.15.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.15.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.16.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.16.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.16.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.16.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.16.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.16.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.16.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.16.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.16.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.17.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.17.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.17.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.17.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.17.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.17.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.17.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.17.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.17.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.18.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.18.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.18.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.18.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.18.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.18.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.18.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.18.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.18.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.19.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.19.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.19.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.19.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.19.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.19.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.19.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.19.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.19.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.20.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.20.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.20.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.20.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.20.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.20.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.20.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.20.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.20.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.21.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.21.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.21.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.21.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.21.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.21.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.21.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.21.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.21.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.22.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.22.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.22.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.22.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.22.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.22.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.22.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.22.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.22.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.23.self_attn.q_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.23.self_attn.k_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.23.self_attn.v_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.23.self_attn.o_proj.weight torch.Size([2048, 2048])
+Adam-mini found the param block with name: model.layers.23.mlp.gate_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.23.mlp.down_proj.weight torch.Size([2048, 5461])
+Adam-mini found the param block with name: model.layers.23.mlp.up_proj.weight torch.Size([5461, 2048])
+Adam-mini found the param block with name: model.layers.23.input_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.layers.23.post_attention_layernorm.weight torch.Size([2048])
+Adam-mini found the param block with name: model.norm.weight torch.Size([2048])
+Adam-mini found the param block with name: lm_head.weight torch.Size([32001, 2048])
+Adam-mini found 1 embedding layers, 1 output layers; 48 Querys and Keys;  0 Values;  24 attn_proj;  72 MLPs;
+=====>>>  Warning by Adam-mini: No Value found. If you are training Transformers, please check the name of your Value in attention blocks and manually add them to 'self.wv_names' of Adam-mini. You can do this by adding an additional lines of code: optimizer.wv_names.add('the keywords in the  name of your Value' ). 
+Memory allocated: 4533
+Memory reserved: 30212
+
+Update step: 13. Tokens seen: 3670016
+Training loss: 10.611750229046894
+Learning rate: 1.9499999999999995e-06
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 26. Tokens seen: 7077888
+Training loss: 9.662655358131115
+Learning rate: 3.899999999999999e-06
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 39. Tokens seen: 10485760
+Training loss: 8.809431277788603
+Learning rate: 5.85e-06
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 52. Tokens seen: 13893632
+Training loss: 8.435101493046833
+Learning rate: 7.799999999999998e-06
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 65. Tokens seen: 17301504
+Training loss: 8.178211063146591
+Learning rate: 9.75e-06
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 78. Tokens seen: 20709376
+Training loss: 7.943991735577583
+Learning rate: 1.17e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 91. Tokens seen: 24117248
+Training loss: 7.700803452959428
+Learning rate: 1.3649999999999998e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 104. Tokens seen: 27525120
+Training loss: 7.443020372436597
+Learning rate: 1.5599999999999996e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 117. Tokens seen: 30932992
+Training loss: 7.234341557209309
+Learning rate: 1.755e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 130. Tokens seen: 34340864
+Training loss: 7.0492270565949955
+Learning rate: 1.95e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 143. Tokens seen: 37748736
+Training loss: 6.918658464000775
+Learning rate: 2.1449999999999996e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 156. Tokens seen: 41156608
+Training loss: 6.751865117595746
+Learning rate: 2.34e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 169. Tokens seen: 44564480
+Training loss: 6.6327191728812
+Learning rate: 2.535e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 182. Tokens seen: 47972352
+Training loss: 6.567812809577355
+Learning rate: 2.7299999999999996e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 195. Tokens seen: 51380224
+Training loss: 6.41517471579405
+Learning rate: 2.925e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 208. Tokens seen: 54788096
+Training loss: 6.327866447659639
+Learning rate: 3.119999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 221. Tokens seen: 58195968
+Training loss: 6.2428445391930065
+Learning rate: 3.315e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 234. Tokens seen: 61603840
+Training loss: 6.128231207911785
+Learning rate: 3.51e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 247. Tokens seen: 65011712
+Training loss: 6.047565757082059
+Learning rate: 3.705e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 260. Tokens seen: 68419584
+Training loss: 5.967797154417405
+Learning rate: 3.9e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 273. Tokens seen: 71827456
+Training loss: 5.906284184410022
+Learning rate: 4.095e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 286. Tokens seen: 75235328
+Training loss: 5.816174842990362
+Learning rate: 4.289999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 299. Tokens seen: 78643200
+Training loss: 5.765017664203277
+Learning rate: 4.484999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 312. Tokens seen: 82051072
+Training loss: 5.688020705603636
+Learning rate: 4.68e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 325. Tokens seen: 85458944
+Training loss: 5.633169261308817
+Learning rate: 4.875e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 338. Tokens seen: 88866816
+Training loss: 5.597477845274485
+Learning rate: 5.07e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 351. Tokens seen: 92274688
+Training loss: 5.519008984932532
+Learning rate: 5.264999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 364. Tokens seen: 95682560
+Training loss: 5.47734079338037
+Learning rate: 5.459999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 377. Tokens seen: 99090432
+Training loss: 5.501403770194604
+Learning rate: 5.654999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 390. Tokens seen: 102498304
+Training loss: 5.475532756401942
+Learning rate: 5.85e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 403. Tokens seen: 105906176
+Training loss: 5.393081631798011
+Learning rate: 6.045e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 416. Tokens seen: 109314048
+Training loss: 5.378315571409005
+Learning rate: 6.239999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 429. Tokens seen: 112721920
+Training loss: 5.341536246813261
+Learning rate: 6.434999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 442. Tokens seen: 116129792
+Training loss: 5.323294647611105
+Learning rate: 6.63e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 455. Tokens seen: 119537664
+Training loss: 5.248879389120982
+Learning rate: 6.824999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 468. Tokens seen: 122945536
+Training loss: 5.256692482874944
+Learning rate: 7.02e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 481. Tokens seen: 126353408
+Training loss: 5.207465989085344
+Learning rate: 7.214999999999999e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 494. Tokens seen: 129761280
+Training loss: 5.176967787054869
+Learning rate: 7.41e-05
+Memory allocated: 6044
+Memory reserved: 31256
+
+Update step: 507. Tokens seen: 133169152
+Training loss: 5.140518627487696
+Learning rate: 7.604999999999999e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 520. Tokens seen: 136577024
+Training loss: 5.103382150714214
+Learning rate: 7.8e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 533. Tokens seen: 139984896
+Training loss: 5.066380923757186
+Learning rate: 7.994999999999999e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 546. Tokens seen: 143392768
+Training loss: 5.042338990248167
+Learning rate: 8.19e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 559. Tokens seen: 146800640
+Training loss: 5.006160366993684
+Learning rate: 8.385e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 572. Tokens seen: 150208512
+Training loss: 4.986946891706723
+Learning rate: 8.579999999999998e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 585. Tokens seen: 153616384
+Training loss: 5.016066159193333
+Learning rate: 8.774999999999999e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 598. Tokens seen: 157024256
+Training loss: 4.930126965619051
+Learning rate: 8.969999999999998e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 611. Tokens seen: 160432128
+Training loss: 4.928525471916566
+Learning rate: 9.164999999999999e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 624. Tokens seen: 163840000
+Training loss: 4.901749202838311
+Learning rate: 9.36e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 637. Tokens seen: 167247872
+Training loss: 4.856701869231004
+Learning rate: 9.554999999999999e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 650. Tokens seen: 170655744
+Training loss: 4.827464993756551
+Learning rate: 9.75e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 663. Tokens seen: 174063616
+Training loss: 4.874444188979956
+Learning rate: 9.944999999999999e-05
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 676. Tokens seen: 177471488
+Training loss: 4.946029804073847
+Learning rate: 0.0001014
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 689. Tokens seen: 180879360
+Training loss: 4.783150992714441
+Learning rate: 0.00010334999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 702. Tokens seen: 184287232
+Training loss: 4.772120260275328
+Learning rate: 0.00010529999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 715. Tokens seen: 187695104
+Training loss: 4.728781259403779
+Learning rate: 0.00010724999999999999
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 728. Tokens seen: 191102976
+Training loss: 4.7564712556508875
+Learning rate: 0.00010919999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 741. Tokens seen: 194510848
+Training loss: 4.7422260739482365
+Learning rate: 0.00011114999999999999
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 754. Tokens seen: 197918720
+Training loss: 4.657266851801139
+Learning rate: 0.00011309999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 767. Tokens seen: 201326592
+Training loss: 4.687696085526393
+Learning rate: 0.00011504999999999999
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 780. Tokens seen: 204734464
+Training loss: 4.635008975290335
+Learning rate: 0.000117
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 793. Tokens seen: 208142336
+Training loss: 4.642175779319727
+Learning rate: 0.00011894999999999999
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 806. Tokens seen: 211550208
+Training loss: 4.6037269326356745
+Learning rate: 0.0001209
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 819. Tokens seen: 214958080
+Training loss: 4.5833705107753095
+Learning rate: 0.00012284999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 832. Tokens seen: 218365952
+Training loss: 4.553855094772119
+Learning rate: 0.00012479999999999997
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 845. Tokens seen: 221773824
+Training loss: 4.57273923777617
+Learning rate: 0.00012675
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 858. Tokens seen: 225181696
+Training loss: 4.5372804924845695
+Learning rate: 0.00012869999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 871. Tokens seen: 228589568
+Training loss: 4.508914412214206
+Learning rate: 0.00013064999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 884. Tokens seen: 231997440
+Training loss: 4.4806661405242405
+Learning rate: 0.0001326
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 897. Tokens seen: 235405312
+Training loss: 4.508264163365731
+Learning rate: 0.00013455
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 910. Tokens seen: 238813184
+Training loss: 4.453183052631525
+Learning rate: 0.00013649999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 923. Tokens seen: 242221056
+Training loss: 4.4626786061204395
+Learning rate: 0.00013845
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 936. Tokens seen: 245628928
+Training loss: 4.395983941853046
+Learning rate: 0.0001404
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 949. Tokens seen: 249036800
+Training loss: 4.425584772458444
+Learning rate: 0.00014235
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 962. Tokens seen: 252444672
+Training loss: 4.386956716386171
+Learning rate: 0.00014429999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 975. Tokens seen: 255852544
+Training loss: 4.389427268734345
+Learning rate: 0.00014624999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 988. Tokens seen: 259260416
+Training loss: 4.35841950831505
+Learning rate: 0.0001482
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1001. Tokens seen: 262668288
+Training loss: 4.363115604107197
+Learning rate: 0.00015014999999999996
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1014. Tokens seen: 266076160
+Training loss: 4.357772667247516
+Learning rate: 0.00015209999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1027. Tokens seen: 269484032
+Training loss: 4.318190270891557
+Learning rate: 0.00015404999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1040. Tokens seen: 272891904
+Training loss: 4.288397974692858
+Learning rate: 0.000156
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1053. Tokens seen: 276299776
+Training loss: 4.274587109111822
+Learning rate: 0.00015794999999999996
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1066. Tokens seen: 279707648
+Training loss: 4.273921445012093
+Learning rate: 0.00015989999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1079. Tokens seen: 283115520
+Training loss: 4.246479129562011
+Learning rate: 0.00016184999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1092. Tokens seen: 286523392
+Training loss: 4.260146155953407
+Learning rate: 0.0001638
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1105. Tokens seen: 289931264
+Training loss: 4.224976015778688
+Learning rate: 0.00016575
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1118. Tokens seen: 293339136
+Training loss: 4.216403589225733
+Learning rate: 0.0001677
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1131. Tokens seen: 296747008
+Training loss: 4.1748506145981645
+Learning rate: 0.00016964999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1144. Tokens seen: 300154880
+Training loss: 4.138830028474331
+Learning rate: 0.00017159999999999997
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1157. Tokens seen: 303562752
+Training loss: 4.137708841034999
+Learning rate: 0.00017355
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1170. Tokens seen: 306970624
+Training loss: 4.29281608072611
+Learning rate: 0.00017549999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1183. Tokens seen: 310378496
+Training loss: 4.168636488226744
+Learning rate: 0.00017745
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1196. Tokens seen: 313786368
+Training loss: 4.136830114974425
+Learning rate: 0.00017939999999999997
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1209. Tokens seen: 317194240
+Training loss: 4.093118256101241
+Learning rate: 0.00018135
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1222. Tokens seen: 320602112
+Training loss: 4.082965817015904
+Learning rate: 0.00018329999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1235. Tokens seen: 324009984
+Training loss: 4.070592296238129
+Learning rate: 0.00018525
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1248. Tokens seen: 327417856
+Training loss: 4.074348264015638
+Learning rate: 0.0001872
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1261. Tokens seen: 330825728
+Training loss: 4.038926873642665
+Learning rate: 0.00018914999999999996
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1274. Tokens seen: 334233600
+Training loss: 4.094685544188206
+Learning rate: 0.00019109999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1287. Tokens seen: 337641472
+Training loss: 4.050334249551479
+Learning rate: 0.00019304999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1300. Tokens seen: 341049344
+Training loss: 4.015519202901767
+Learning rate: 0.000195
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1313. Tokens seen: 344457216
+Training loss: 3.9928298936440396
+Learning rate: 0.00019694999999999996
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1326. Tokens seen: 347865088
+Training loss: 3.9613525798687568
+Learning rate: 0.00019889999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1339. Tokens seen: 351272960
+Training loss: 4.029835233894678
+Learning rate: 0.00020084999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1352. Tokens seen: 354680832
+Training loss: 3.9705024080780835
+Learning rate: 0.0002028
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1365. Tokens seen: 358088704
+Training loss: 3.937628580400577
+Learning rate: 0.00020475
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1378. Tokens seen: 361496576
+Training loss: 3.9538303968998103
+Learning rate: 0.00020669999999999996
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1391. Tokens seen: 364904448
+Training loss: 3.96034417874538
+Learning rate: 0.00020864999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1404. Tokens seen: 368312320
+Training loss: 3.9472729810155354
+Learning rate: 0.00021059999999999997
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1417. Tokens seen: 371720192
+Training loss: 3.90878350688861
+Learning rate: 0.00021255
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1430. Tokens seen: 375128064
+Training loss: 3.8837666522998076
+Learning rate: 0.00021449999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1443. Tokens seen: 378535936
+Training loss: 3.873958665017898
+Learning rate: 0.00021645
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1456. Tokens seen: 381943808
+Training loss: 3.9013940170407295
+Learning rate: 0.00021839999999999997
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1469. Tokens seen: 385351680
+Training loss: 3.8721021190285683
+Learning rate: 0.00022035
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1482. Tokens seen: 388759552
+Training loss: 3.8322372986720157
+Learning rate: 0.00022229999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1495. Tokens seen: 392167424
+Training loss: 3.8318111546910725
+Learning rate: 0.00022425
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1508. Tokens seen: 395575296
+Training loss: 3.8374230890319896
+Learning rate: 0.00022619999999999997
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1521. Tokens seen: 398983168
+Training loss: 3.8854789837048602
+Learning rate: 0.00022814999999999996
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1534. Tokens seen: 402391040
+Training loss: 3.861195430159569
+Learning rate: 0.00023009999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1547. Tokens seen: 405798912
+Training loss: 3.8479326780025778
+Learning rate: 0.00023204999999999998
+Memory allocated: 6044
+Memory reserved: 32258
+
+Update step: 1560. Tokens seen: 409206784
+Training loss: 3.8432613788889003
+Learning rate: 0.000234
+Memory allocated: 6044
+Memory reserved: 32258
