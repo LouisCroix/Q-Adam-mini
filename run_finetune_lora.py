@@ -36,7 +36,11 @@ import wandb
 from tqdm import tqdm
 from loguru import logger
 
-transformers.logging.set_verbosity_info()  # 让transformers日志只记录错误和更高级别的信息
+from peft_pretraining import training_utils, args_utils
+from peft_pretraining.llama_modeling import LlamaForCausalLM
+from peft_pretraining.dataset import PreprocessedIterableDataset
+
+transformers.logging.set_verbosity_info()
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
@@ -48,7 +52,7 @@ def parse_args(args):
     # training parameters
     parser.add_argument("--model", type=str, required=True)
     parser.add_argument("--task", type=str, choices=["mmlu", "gsm"], required=True)
-    parser.add_argument("--use_hf_model", default=False, action="store_true")   # action="store_true"表示该参数若在命令行中出现则被设置为True，否则为default参数，default参数未提供则为False（没有设置action时default参数的默认值是None）
+    parser.add_argument("--use_hf_model", default=False, action="store_true")
     parser.add_argument("--continue_from", type=str, default=None)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--gradient_accumulation", type=int, default=None)
@@ -57,26 +61,19 @@ def parse_args(args):
     parser.add_argument("--optimizer", default="Adam")
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--scheduler", type=str, default="cosine", choices=["linear", "cosine", "cosine_restarts"])
-    parser.add_argument("--min_lr_ratio", type=float, default=0.1)  # warm-up后最低学习率占最高学习率的比例
+    parser.add_argument("--min_lr_ratio", type=float, default=0.1)
     parser.add_argument("--activation_checkpointing", action="store_true")
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--num_epochs", type=int, default=3)
     parser.add_argument("--warmup_steps", type=int, default=0)
     parser.add_argument("--eval_every", type=int, default=50)
-    # parser.add_argument("--num_billion_training_tokens", type=float, default=1.1)
-    # parser.add_argument("--num_training_steps", type=int, default=None,
-    #                     help="Number of **update steps** to train for. "
-    #                          "Notice that gradient accumulation is taken into account.")
-    # parser.add_argument("--max_train_tokens", type=training_utils.max_train_tokens_to_number, default=None,
-    #                     help="Number of tokens to train on. Overwrites num_training_steps. "
-    #                          "You can use M and B suffixes, e.g. 100M or 1B.")
-    # parser.add_argument("--save_every", type=int, default=5_000)
+
     parser.add_argument("--save_dir", type=str, default="./q-adam-mini-checkpoints")
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument("--name", type=str, default='test')
     parser.add_argument("--dtype", type=str, default="bfloat16" if torch.cuda.is_bf16_supported() else "float32")
     parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("--seed", type=int, default=0)  # 为torch，numpy，和random库提供的随机种子，默认值为0
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--project", type=str, default="test")
     parser.add_argument("--unset_wandb", action="store_true")
     parser.add_argument("--wandb_api_key", type=str, default=None, help="API key for wandb login")
@@ -106,7 +103,7 @@ def parse_args(args):
 
     args = parser.parse_args(args)
 
-    args = args_utils.check_args_torchrun_main(args)    # 为torchrun检查参数并设置没有提供的参数值
+    args = args_utils.check_args_torchrun_main(args)
     assert args.task in ["mmlu", "gsm"], "argument dataset should be mmlu or gsm"
     return args
 
@@ -144,36 +141,22 @@ def gsm_num_prompt_generator(batch, tokenizer, max_length):
         
     return {"input_ids": input_ids, "num_answers": num_answers}
 
-# 加载验证数据集并计算模型的验证loss和用于验证的非padding token数（分布式训练时会乘以world_size来估算整体训练的数据，不使用dist.all_gather()可能是因为非padding token数需要在验证循环中计算来确定验证何时停止，多次计算需要保证效率）
 @torch.no_grad()
 def evaluate_model(model, tokenizer, pad_idx, batch_size, part="validation"):
     assert part in ["validation", "test"], "part of dataset for this function to use must be validation or test"
     _time = time.time()
-    # if task == "mmlu":
+
     val_data = datasets.load_from_disk(f"./datasets/mmlu/all/{part}")
-    # elif task == "gsm":
-    #     val_data = datasets.load_from_disk(f"./datasets/gsm8k/main/test")
+
     val_data = val_data.shuffle(seed=42)
     metric = evaluate.load("./evaluate-main/evaluate-main/metrics/accuracy")
     logger.info(f"Loaded {part} dataset and metric in {time.time() - _time:.2f} seconds")
 
-    # if not args.single_gpu:
-    #     val_data = datasets.distributed.split_dataset_by_node(val_data, rank=global_rank, world_size=world_size)
-
-    # val_data_mapped = val_data.map(
-    #     preprocess_batched,
-    #     batched=True,
-    #     remove_columns=["text", "timestamp", "url"],
-    # )
-    # val_data_mapped.batch = lambda batch_size: training_utils.batch_fn(val_data_mapped, batch_size) # training_utils.batch_fn()用于将数据集转化为多批次，并逐批次转化为tensor
-
     partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
     val_dataset = val_data.map(partial_prompt_gene, batched=True, batch_size=1000, remove_columns=val_data.column_names)
-    # val_dataset = PreprocessedIterableDataset(val_data, tokenizer, batch_size=batch_size, max_length=armgs.max_length)
     dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, num_workers=args.workers,
                                              collate_fn=DataCollatorForCompletionOnlyLM("<answer>: ", mlm=False, tokenizer=tokenizer, return_tensors="pt"))
 
-    # target_eval_tokens = 10_000_000
     evaluated_on_tokens = 0
     total_loss = 0
     total_batches = 1
@@ -186,8 +169,6 @@ def evaluate_model(model, tokenizer, pad_idx, batch_size, part="validation"):
         for batch in tqdm(dataloader):
 
             batch = {k: v.to(model.device) for k, v in batch.items()}
-            # labels = batch["input_ids"].clone()
-            # labels[labels == pad_idx] = -100
             
             model_result = model(**batch)
             total_loss += model_result.loss
@@ -202,12 +183,6 @@ def evaluate_model(model, tokenizer, pad_idx, batch_size, part="validation"):
             total_batches += 1
             
     model.train()
-    # print(predictions, references, tokenizer.decode(predictions), tokenizer.decode(references))
-
-    # Gather losses across all GPUs
-    # gathered_losses = [torch.zeros_like(total_loss) for _ in range(world_size)]
-    # dist.all_gather(gathered_losses, total_loss)
-    # total_loss = sum([t.item() for t in gathered_losses]) / world_size
     
     total_loss = total_loss / total_batches
     metric_result = metric.compute()["accuracy"]
@@ -221,22 +196,9 @@ def main(args):
     os.environ["WANDB_LOG_MODEL"] = "false"
     os.environ["WANDB_WATCH"] = "false"
 
-    # 分布式训练准备工作
-    
-    # assert "RANK" in os.environ, "RANK should be set in os.environ"
-    # global_rank = int(os.environ['RANK'])
-    # world_size = int(os.environ["WORLD_SIZE"])
-    # assert world_size == torch.cuda.device_count(),  f"{world_size} {torch.cuda.device_count()}"
-    # torch.cuda.set_device(local_rank)
-
-    # logger.info(f"Global rank {global_rank}, local rank {local_rank}, device: {torch.cuda.current_device()}")
-
-    # dist.init_process_group(backend="nccl", rank=global_rank, world_size=world_size)
-
     logger.info("Process group initialized")
-    # device = f"cuda:{local_rank}"
 
-    # 检查并完成梯度累积相关超参数的设置，公式：args.gradient_accumulation * args.batch_size == args.total_batch_size
+    # args.gradient_accumulation * args.batch_size == args.total_batch_size
     if args.total_batch_size is not None:
         if args.gradient_accumulation is None:
             args.gradient_accumulation = args.total_batch_size // args.batch_size
@@ -247,9 +209,8 @@ def main(args):
 
     # initialize wandb without config (it is passed later) in the main training process. wandb是用于可视化监测训练过程的库
     if not args.unset_wandb:
-        # os.environ["WANDB_MODE"] = "offline"    # 若使用online wandb则注释掉此行
+        # os.environ["WANDB_MODE"] = "offline"    # comment this line if use online wandb
         print("Initializing wandb")
-        # 添加显式登录步骤，使用新的API密钥
         if args.wandb_api_key:
             wandb.login(key=args.wandb_api_key)
 
@@ -264,7 +225,6 @@ def main(args):
     tokenizer.add_special_tokens({"pad_token": "<<PAD>>"})
     # tokenizer.add_special_tokens({"additional_special_tokens": ["<question>", "<answer>"]})
 
-    # 数据加载并分布到不同设备
     if args.task == "mmlu":
         val_data = datasets.load_from_disk(f"./datasets/mmlu/all/validation")
         partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
@@ -280,36 +240,16 @@ def main(args):
     dataset = data.map(partial_prompt_gene, batched=True, batch_size=1000, remove_columns=data.column_names)
 
     model = HF_LlamaForCausalLM.from_pretrained(args.model)
-    # model_config = AutoConfig.from_pretrained(args.model_config)
     model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=4)
-    # print(model.config.torch_dtype)
-    # print(f"Model parameters dtype: {model.model.layers[0].self_attn.q_proj.weight.data.dtype}\n")
-    # print(model.config.vocab_size)
-    # model_config.vocab_size += 1
-    # if args.use_hf_model:
-    #     model: HF_LlamaForCausalLM = AutoModelForCausalLM.from_config(model_config)
-    # else:
-    #     model = LlamaForCausalLM(model_config)
     
     epoch_traning_steps = math.ceil(len(dataset)/(args.gradient_accumulation*args.batch_size))
     args.num_training_steps = epoch_traning_steps*args.num_epochs
     print(epoch_traning_steps, args.num_training_steps)
     
-    # optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    # scheduler = training_utils.get_scheculer(
-    #     optimizer=optimizer,
-    #     scheduler_type=args.scheduler,
-    #     num_training_steps=args.num_training_steps,
-    #     warmup_steps=args.warmup_steps,
-    #     min_lr_ratio=args.min_lr_ratio,
-    # )
-    
     metric = evaluate.load("./evaluate-main/evaluate-main/metrics/accuracy")
     
     def compute_metrics(eval_pred, compute_result):
         logits, labels = eval_pred
-        # print(logits, labels, tokenizer.decode(labels[labels != -100]))
-        # input()
         predictions = logits[labels != -100][:, 15: 19].argmax(dim=1) + 15
         references = labels[labels != -100]
         metric.add_batch(references=references, predictions=predictions)
@@ -356,18 +296,6 @@ def main(args):
                         step=state.global_step*self.gradient_accumulation,
                         # commit=True
                     )
-                
-                
-    # class CustomTrainer(SFTTrainer):
-    #     def create_scheduler(self, num_training_steps, optimizer):
-    #         # 调用 Hugging Face 的 get_scheduler 方法
-    #         return training_utils.get_scheculer(
-    #             optimizer=optimizer,
-    #             scheduler_type=args.scheduler,
-    #             num_training_steps=args.num_training_steps,
-    #             warmup_steps=args.warmup_steps,
-    #             min_lr_ratio=args.min_lr_ratio,
-    #         )
 
 
     # ##############################
@@ -381,7 +309,6 @@ def main(args):
         bias="none",
         task_type="CAUSAL_LM",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj", "lm_head"],
-        # modules_to_save=["embed_tokens"],
     )
 
     # Step 4: Training Arguments
@@ -438,8 +365,7 @@ def main(args):
     # Final evaluation and test
     if args.task == "mmlu":
         logger.info("Running final eval and test")
-        # del loss, optimizer, scheduler
-        # import gc; gc.collect() # 手动触发python内存垃圾回收机制
+
         torch.cuda.empty_cache()
         
         trainer.evaluate()  # also triggers wandbcallback
@@ -448,29 +374,7 @@ def main(args):
         test_data = test_data.shuffle(seed=42)
         partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
         test_dataset = test_data.map(partial_prompt_gene, batched=True, batch_size=1000, remove_columns=test_data.column_names)
-        # total_loss, accuracy, evaluated_on_tokens = evaluate_model(
-        #     model, tokenizer, tokenizer.pad_token_id, args.batch_size, "test",
-        # )
         trainer.evaluate(test_dataset)
-        
-        # print(metrics)
-        # input()
-
-        # if not args.unset_wandb:
-        #     wandb.log({
-        #         "final_test_loss": total_loss,
-        #         "test_accuracy": accuracy,
-        #         "final_test_tokens": evaluated_on_tokens,
-        #         },
-        #         step=args.num_training_steps,
-        #     )
-        # logger.info(f"Final test loss: {total_loss}, accuracy: {accuracy}")
-        
-    # 主训练进程完成模型、优化器等的checkpoint数据和信息的保存
-    # current_model_directory = f"{args.save_dir}/model_{args.name}"
-    # logger.info(f"Saving model and optimizer to {current_model_directory}, update step {args.num_training_steps}")
-    # os.makedirs(current_model_directory, exist_ok=True)
-    # trainer.save_model(current_model_directory)
 
     logger.info("Script finished successfully")
     print(f"Script finished successfully")

@@ -8,7 +8,7 @@
 #SBATCH -o %j.log
 #SBATCH -e %j.err
 
-accelerate launch ../my_run_finetune.py \
+accelerate launch ../run_finetune.py \
     --model ./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
     --task gsm \
     --lr 2e-6 \
@@ -24,7 +24,7 @@ accelerate launch ../my_run_finetune.py \
     --weight_group_size 256 \
     --stochastic_round \
     --stochastic_round_state \
-    --name new1_llama_gsm_2e-6_80_nowq_halfpre > new1_llama_gsm_2e-6_80_nowq_halfpre
+    --name new1_llama_gsm_2e-6_80_nowq > new1_llama_gsm_2e-6_80_nowq
 
 # log文件的作用会被 > 后面的文件取代
 # dtype原为bfloat16，现暂时改为float32

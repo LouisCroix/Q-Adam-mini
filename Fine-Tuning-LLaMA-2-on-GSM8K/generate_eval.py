@@ -18,7 +18,7 @@ tokenizer_path = "./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/s
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 tokenizer.add_special_tokens({"pad_token": "<<PAD>>"})
 
-model_path = "./q-adam-mini-checkpoints/model_AdamW-llama_lora_gsm_2e-5_80_128_256_halfpre"
+model_path = "./q-adam-mini-checkpoints/model_AdamW-llama_lora_gsm_2e-5_80_128_256"
 # model_path = "./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6"
 if "lora" in model_path:
     lora_config = LoraConfig.from_pretrained(model_path)

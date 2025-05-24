@@ -1,4 +1,4 @@
-python ../my_run_finetune_lora.py \
+python ../run_finetune_lora.py \
     --model ./models/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
     --task mmlu \
     --lr 2e-5 \
@@ -13,4 +13,4 @@ python ../my_run_finetune_lora.py \
     --eval_every 50 \
     --optimizer adamw \
     --project 'finetune' \
-    --name AdamW-llama_lora_2e-5_80_128_256_halfpre > AdamW_llama_lora_2e-5_80_128_256_halfpre_1
+    --name AdamW-llama_lora_2e-5_80_128_256 > AdamW_llama_lora_2e-5_80_128_256_1

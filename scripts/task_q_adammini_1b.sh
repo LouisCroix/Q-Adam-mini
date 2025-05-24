@@ -1,4 +1,4 @@
-torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
+torchrun --standalone --nproc_per_node 1 run_pretrain.py \
     --model_config configs/llama_1b.json \
     --lr 3e-4 \
     --batch_size 8 \
@@ -16,4 +16,4 @@ torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
     --weight_group_size 256 \
     --stochastic_round \
     --stochastic_round_state \
-    --name new1_1B_3e-4_256_nowq_halfpre > new1_1B_3e-4_256_nowq_halfpre
+    --name new1_1B_3e-4_256_nowq > new1_1B_3e-4_256_nowq
