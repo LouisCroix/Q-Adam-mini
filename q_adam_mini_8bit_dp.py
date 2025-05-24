@@ -313,10 +313,10 @@ class QAdamMini8bit(Optimizer2State):
                     p.add_(-update)
                     
                     if use_quant_state:
-                        if self.stochastic_round_state:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
-                        else:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
+                        # if self.stochastic_round_state:
+                        #     state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
+                        # else:
+                        state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
                     else:
                         state["m"].data = float_m
 
@@ -372,7 +372,7 @@ class QAdamMini8bit(Optimizer2State):
                     p.add_(-update)
                     
                     if use_quant_state:
-                        if self.stochastic_round_state:
+                        if (any(embd_name in name for embd_name in self.embd_names) or any(output_name in name for output_name in self.output_names)) and self.stochastic_round_state:
                             state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
                         else:
                             state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
@@ -448,10 +448,10 @@ class QAdamMini8bit(Optimizer2State):
                     p.add_(-update)
                     
                     if use_quant_state:
-                        if self.stochastic_round_state:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
-                        else:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
+                        # if self.stochastic_round_state:
+                        #     state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
+                        # else:
+                        state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
                     else:
                         state["m"].data = float_m
                         

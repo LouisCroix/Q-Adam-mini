@@ -253,16 +253,9 @@ class QAdamMini8bit(Optimizer2State):
                     float_weight = self._dequantize(p.data, p.float_grad.dtype, p.group_size, p.scales, p.zeros)
                     p.data = p.data.to(p.float_grad.dtype)
                     p.data = float_weight.clone().to(p.data.device)
-                #     print("float_grad:", p.float_grad.dtype)
-                # else:
-                #     print("grad:", p.grad.dtype)
                     
                 state = self.state[p]
                 assert "vmean" not in state or state["vmean"].dtype == self.otherwise_dtype, state["vmean"].dtype
-                # if "step" not in state:
-                #     state["step"] = 0
-                # if 'state1' not in state:
-                #     self.init_state(group, p, gindex, pindex)
                     
                 self.prefetch_state(p)
 
@@ -324,10 +317,10 @@ class QAdamMini8bit(Optimizer2State):
                     p.add_(-update)
                     
                     if use_quant_state:
-                        if self.stochastic_round_state:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
-                        else:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
+                        # if self.stochastic_round_state:
+                        #     state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
+                        # else:
+                        state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
                     else:
                         state["m"].data = float_m
 
@@ -382,14 +375,14 @@ class QAdamMini8bit(Optimizer2State):
                     p.add_(-update)
                     
                     if use_quant_state:
-                        if self.stochastic_round_state:
+                        if (any(embd_name in name for embd_name in self.embd_names) or any(output_name in name for output_name in self.output_names)) and self.stochastic_round_state:
                             state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
                         else:
                             state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
                     else:
                         state["m"].data = float_m
 
-                else:  # # other blocks. By default, this is for LayerNorms. Sometimes it is also fine to put Value here.
+                else:  # other blocks. By default, this is for LayerNorms. Sometimes it is also fine to put Value here.
                     if len(state) == 0:
                         block_numel = torch.tensor(p.numel()).to(torch.float32).to(device)
                         reduced = False
@@ -484,10 +477,10 @@ class QAdamMini8bit(Optimizer2State):
                     p.add_(-update)
                     
                     if use_quant_state:
-                        if self.stochastic_round_state:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
-                        else:
-                            state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
+                        # if self.stochastic_round_state:
+                        #     state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize_stochastic_round(float_m, q_group_size=state["m_group_size"])
+                        # else:
+                        state["m"].data, state["m_scales"], state["m_zeros"] = self._quantize(float_m, q_group_size=state["m_group_size"])
                     else:
                         state["m"].data = float_m
                         
