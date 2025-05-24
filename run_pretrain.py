@@ -1,9 +1,3 @@
-'''
-主要改动：
-import的包换成从q_adam_mini_8bit导入，删除导入其他自定义的包的代码。
-删除和其他自定义包有关的代码。
-为继续训练增加读取之前的optimizer的操作（直接存取optimizer.state_dict即可，我的optimizer实现已经考虑到了Adam-mini新增的优化信息的保存问题）（有需要再进行，大概率不需要，不过用到时要注意，需要读取和保存的有optimizer和optimizer_dict两种可能）
-'''
 import os
 import time
 import json
@@ -33,21 +27,19 @@ from peft_pretraining.llama_modeling import LlamaForCausalLM
 from peft_pretraining.dataset import PreprocessedIterableDataset
 
 import bitsandbytes as bnb
-from q_adam_mini_8bit_new_32 import QAdamMini8bit
-from adam_mini_new import Adam_mini
+from q_adam_mini_8bit import QAdamMini8bit
+from adam_mini import Adam_mini
 from quantization import prepare_model_for_int8_training, QLinear
-# from q_adam_mini_8bit_simulate import QGaLoreAdamW8bit_simulate
-# from simulate_quantization import prepare_model_for_int8_training_simulation, SimQLinear
 from setup import saving_model_weight, load_model_weight
 
-transformers.logging.set_verbosity_error()  # 让transformers日志只记录错误和更高级别的信息
+transformers.logging.set_verbosity_error()
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
 
     # training parameters
     parser.add_argument("--model_config", type=str, required=True)
-    parser.add_argument("--use_hf_model", default=False, action="store_true")   # action="store_true"表示该参数若在命令行中出现则被设置为True，否则为default参数，default参数未提供则为False（没有设置action时default参数的默认值是None）
+    parser.add_argument("--use_hf_model", default=False, action="store_true")
     parser.add_argument("--continue_from", type=str, default=None)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--gradient_accumulation", type=int, default=None)
@@ -56,7 +48,7 @@ def parse_args(args):
     parser.add_argument("--optimizer", default="Adam")
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--scheduler", type=str, default="cosine", choices=["linear", "cosine", "cosine_restarts"])
-    parser.add_argument("--min_lr_ratio", type=float, default=0.1)  # warm-up后最低学习率占最高学习率的比例
+    parser.add_argument("--min_lr_ratio", type=float, default=0.1)
     parser.add_argument("--activation_checkpointing", action="store_true")
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--warmup_steps", type=int, default=500)
@@ -74,7 +66,7 @@ def parse_args(args):
     parser.add_argument("--name", type=str, default='test')
     parser.add_argument("--dtype", type=str, default="bfloat16" if torch.cuda.is_bf16_supported() else "float32")
     parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("--seed", type=int, default=0)  # 为torch，numpy，和random库提供的随机种子，默认值为0
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--project", type=str, default="test")
     parser.add_argument("--unset_wandb", action="store_true")
     parser.add_argument("--grad_clipping", type=float, default=0.0)
@@ -102,10 +94,9 @@ def parse_args(args):
     if args.num_training_steps == None:
         args.num_training_steps = round(args.num_training_tokens*1.2/(args.total_batch_size*args.max_length))
 
-    args = args_utils.check_args_torchrun_main(args)    # 为torchrun检查参数并设置没有提供的参数值
+    args = args_utils.check_args_torchrun_main(args)
     return args
 
-# 加载验证数据集并计算模型的验证loss和用于验证的非padding token数（分布式训练时会乘以world_size来估算整体训练的数据，不使用dist.all_gather()可能是因为非padding token数需要在验证循环中计算来确定验证何时停止，多次计算需要保证效率）
 @torch.no_grad()
 def evaluate_model(model, tokenizer, pad_idx, global_rank, world_size, device, batch_size):
     _time = time.time()
@@ -115,13 +106,6 @@ def evaluate_model(model, tokenizer, pad_idx, global_rank, world_size, device, b
 
     if not args.single_gpu:
         val_data = datasets.distributed.split_dataset_by_node(val_data, rank=global_rank, world_size=world_size)
-
-    # val_data_mapped = val_data.map(
-    #     preprocess_batched,
-    #     batched=True,
-    #     remove_columns=["text", "timestamp", "url"],
-    # )
-    # val_data_mapped.batch = lambda batch_size: training_utils.batch_fn(val_data_mapped, batch_size) # training_utils.batch_fn()用于将数据集转化为多批次，并逐批次转化为tensor
 
     val_dataset = PreprocessedIterableDataset(val_data, tokenizer, batch_size=batch_size, max_length=args.max_length)
     dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, num_workers=args.workers,
@@ -142,8 +126,7 @@ def evaluate_model(model, tokenizer, pad_idx, global_rank, world_size, device, b
             total_batches += 1
 
             batch = {k: v.to(device) for k, v in batch.items()}
-            # labels = batch["input_ids"].clone()
-            # labels[labels == pad_idx] = -100
+
             loss = model(**batch).loss
             total_loss += loss
 
@@ -152,7 +135,7 @@ def evaluate_model(model, tokenizer, pad_idx, global_rank, world_size, device, b
     model.train()
 
     total_loss = total_loss / total_batches
-    # Gather losses across all GPUs
+
     gathered_losses = [torch.zeros_like(total_loss) for _ in range(world_size)]
     dist.all_gather(gathered_losses, total_loss)
     total_loss = sum([t.item() for t in gathered_losses]) / world_size
@@ -161,13 +144,8 @@ def evaluate_model(model, tokenizer, pad_idx, global_rank, world_size, device, b
 
 
 def main(args):
-    # 设置所有随机数种子
-    # torch.manual_seed(args.seed)
-    # np.random.seed(args.seed)
-    # random.seed(args.seed)
-    set_seed(args.seed) # 主程序中设置的seed在子程序中也适用
+    set_seed(args.seed)
 
-    # 分布式训练准备工作
     assert "LOCAL_RANK" in os.environ, "torchrun should set LOCAL_RANK"
     global_rank = int(os.environ['RANK'])
     local_rank = int(os.environ["LOCAL_RANK"])
@@ -181,7 +159,7 @@ def main(args):
     logger.info("Process group initialized")
     device = f"cuda:{local_rank}"
 
-    # 检查并完成梯度累积相关超参数的设置，公式：args.gradient_accumulation * args.batch_size * world_size == args.total_batch_size
+    # args.gradient_accumulation * args.batch_size * world_size == args.total_batch_size
     if args.total_batch_size is not None:
         if args.gradient_accumulation is None:
             assert args.total_batch_size % world_size == 0, "total_batch_size must be divisible by world_size"
@@ -194,10 +172,10 @@ def main(args):
     # from here, turn off logger if it is not in the main training process
     if global_rank != 0: logger.remove()
 
-    # initialize wandb without config (it is passed later) in the main training process. wandb是用于可视化监测训练过程的库
+    # initialize wandb without config (it is passed later) in the main training process.
     if global_rank == 0:
         if not args.unset_wandb:
-            os.environ["WANDB_MODE"] = "offline"    # 若使用online wandb则注释掉此行
+            # os.environ["WANDB_MODE"] = "offline"    # comment this line if use online wandb
             print("Initializing wandb")
             wandb_id = None
             if args.continue_from is not None:
@@ -212,7 +190,6 @@ def main(args):
         logger.info(f"{k:30} {v}")
     logger.info("*" * 40)
 
-    # 数据加载并分布到不同设备
     data = datasets.load_dataset("/L00120230003/c4", split="train", streaming=True)
     seed_for_shuffle = 42 
 
@@ -223,26 +200,13 @@ def main(args):
             data, rank=global_rank, world_size=world_size,
         )
 
-    # it doesn't matter which tokenizer we use, because we train from scratch
-    # T5 tokenizer was trained on C4 and we are also training on C4, so it's a good choice
     tokenizer = AutoTokenizer.from_pretrained("./models/snapshots/01c7f73d771dfac7d292323805ebc428287df4f9", max_length=args.max_length)
     tokenizer.add_special_tokens({"pad_token": "<<PAD>>"})
     print(f"\npad_token_id: {tokenizer.pad_token_id}\n")
-    
-    # 数据批量映射函数，映射方式为将数据tokenize
-    # def preprocess_batched(batch):
-    #     batch = tokenizer(
-    #         batch["text"],
-    #         max_length=args.max_length,
-    #         truncation=True,
-    #         padding="max_length",
-    #         return_tensors="pt",
-    #     )
-    #     return batch
 
     dataset = PreprocessedIterableDataset(data, tokenizer, batch_size=args.batch_size, max_length=args.max_length)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, num_workers=args.workers,
-                                             collate_fn=DataCollatorForLanguageModeling(tokenizer, mlm=False, return_tensors="pt")) # batch_size和batch_sampler都是None，则直接返回dataset中的每一项
+                                             collate_fn=DataCollatorForLanguageModeling(tokenizer, mlm=False, return_tensors="pt"))
 
     model_config = AutoConfig.from_pretrained(args.model_config)
     model_config.vocab_size += 1
@@ -253,13 +217,12 @@ def main(args):
 
     if args.activation_checkpointing:
         model.gradient_checkpointing_enable()
-    # print("Before quantization:", model.model.layers[0].self_attn.q_proj.weight.data)   # 检查随机种子是否设置成功
 
     if args.weight_quant:
         # Enable INT8 training
         assert args.optimizer.lower() in ['q_adam_mini_8bit', 'q_adam_mini_8bit_per_layer', 'adamw8bit', 'adammini']
         target_module = ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'up_proj', 'down_proj', 'gate_proj']
-        # 对模型做量化或模拟量化处理，要处理的层名称包含在target_module中
+
         if args.simulation:
             pass
             # model = prepare_model_for_int8_training_simulation(model, args, target_module)
@@ -268,7 +231,6 @@ def main(args):
         print('--'*20)
         print('Prepare Model for Int8 Training')
         print('--'*20)
-    # print("After quantization:", model.model.layers[0].self_attn.q_proj.weight.data)
 
     global_step = 0
     update_step = 0
@@ -277,14 +239,13 @@ def main(args):
     tokens_seen_before = 0
     
     # if args.dtype in ["bf16", "bfloat16"]:
-    #     model = model.to(dtype=torch.bfloat16)  # pytorch模块的to()函数只接受浮点dtype，并且不会把整数参数转化为dtype
+    #     model = model.to(dtype=torch.bfloat16)
 
-    # 若是继续训练，则载入之前的数据
     if args.continue_from is not None:
         logger.info("*" * 40)
         logger.info(f"Loading model from {args.continue_from}")
         checkpoint_path = os.path.join(args.continue_from, "pytorch_model.bin")
-        load_model_weight(model, checkpoint_path)   # setup.py中定义的用于载入量化模型的函数
+        load_model_weight(model, checkpoint_path)
         # model.load_state_dict(torch.load(checkpoint_path, map_location="cpu"), strict=True)
         logger.info(f"Model successfully loaded (strict=False policy)")
 
@@ -325,7 +286,7 @@ def main(args):
 
     n_total_params = sum(p.numel() for p in model.parameters())
     trainable_params_float = [p for p in model.parameters() if p.requires_grad]
-    trainable_params_int8 = [p for p in model.parameters() if hasattr(p, 'group_size')] # 注意量化参数的float_grad属性是到backward之后才有的，所以这里用group_size属性判断是否为量化参数（其实一直用这个属性判断就可以，不用改成float_grad）
+    trainable_params_int8 = [p for p in model.parameters() if hasattr(p, 'group_size')]
 
     # Initialize config of wandb
     run_config = dict(vars(args))
@@ -394,7 +355,6 @@ def main(args):
 
     # Layer-wise optimizers
     elif args.optimizer.lower() == 'q_adam_mini_8bit_per_layer':
-        # TODO: seems scheduler call twice in one update step, need to check, for now double the num_training_steps, warmup_steps and update_proj_gap 这是LOMO不能accumulate gradient导致的
         optimizer_dict = {}
         for pname, p in model.named_parameters():
             if hasattr(p, 'group_size') or p.requires_grad:
@@ -412,19 +372,18 @@ def main(args):
                     min_lr_ratio=args.min_lr_ratio,
                 )
 
-        # 注册LOMO hook
         def optimizer_hook(p):
             if (not hasattr(p, 'float_grad')) and p.grad is None: 
                 return
             optimizer_dict[p].step()
-            optimizer_dict[p].zero_grad()   # 注意：q-adam-mini的zero_grad()默认将grad设置为None，即会清除其内存占用
+            optimizer_dict[p].zero_grad()
             scheduler_dict[p].step()
 
-        # Register the hook onto every parameter block (tensor) using iteration through model.parameters() 因此本程序中LOMO方法的实现是依次更新每个tensor
+        # Register the hook onto every parameter block (tensor) using iteration through model.parameters()
         for p in model.parameters():
             if hasattr(p, 'group_size'):
                 # suboptimal: backward_hook can not be applied to int8 tensors
-                # we manully fuse the backward_hook inside the backward process 不是用官方函数注册，而是直接设置backward_hook属性的值为hook函数，这个属性会在W8Linear的backward执行的末尾被调用，参见quantization.py
+                # we manully fuse the backward_hook inside the backward process
                 setattr(p, 'backward_hook', optimizer_hook)
             elif p.requires_grad:
                 p.register_post_accumulate_grad_hook(optimizer_hook)
@@ -434,7 +393,7 @@ def main(args):
     else:
         raise ValueError(f"Optimizer {args.optimizer} not supported")
 
-    # scheduler 前面非LOMO的情况没有定义scheduler，这里补上
+    # scheduler
     if not layer_wise_flag:
         scheduler = training_utils.get_scheculer(
             optimizer=optimizer,
@@ -447,7 +406,7 @@ def main(args):
     if args.continue_from is not None:
         logger.info("*" * 40)
         logger.info(f"Loading optimizer from {args.continue_from}")
-        optimizer_checkpoint = torch.load(f"{args.continue_from}/optimizer.pt", map_location="cpu") # 东西不止optimizer和scheduler，不要一次性都弄到GPU上
+        optimizer_checkpoint = torch.load(f"{args.continue_from}/optimizer.pt", map_location="cpu")
         optimizer.load_state_dict(optimizer_checkpoint["optimizer"])
         scheduler.load_state_dict(optimizer_checkpoint["scheduler"])
         logger.info("*" * 40)
@@ -481,27 +440,21 @@ def main(args):
             global_step += 1
             local_step += 1
 
-            # 达到要求的training steps之后结束训练
             if tokens_seen > args.num_training_tokens:
                 logger.info(f"Reached max number of training tokens ({args.num_training_tokens}) at update step {update_step}. Stopping training.")
                 print(f"Rank {global_rank} stopping training.")
                 break
 
             batch = {k: v.to(device) for k, v in batch.items()}
-            # labels = batch["input_ids"].clone()
-            # labels[labels == pad_idx] = -100
             tokens_seen += (batch["input_ids"] != pad_idx).sum().item() * world_size
-            # if (batch["input_ids"] != pad_idx).sum().item() * world_size % args.max_length != 0: print(f'pad_tokens_seen: {(batch["input_ids"] == pad_idx).sum().item() * world_size}')
 
             with autocast(device_type="cuda", dtype=torch.bfloat16):
                 loss = model(**batch).loss
 
             scaled_loss = loss / args.gradient_accumulation
-            # print("--------scaled_loss", scaled_loss.dtype)
             scaler.scale(scaled_loss).backward()
             period_loss += scaled_loss.item()
 
-            # 达到梯度累积要求的steps之后再执行后序的梯度更新等操作
             if global_step % args.gradient_accumulation != 0:
                 continue
             
@@ -515,11 +468,11 @@ def main(args):
                         lr = list(optimizer_dict.values())[0].param_groups[0]["lr"]
                     print(f"Learning rate: {lr}")
                 period_loss = 0
-                print(f"Memory allocated: {torch.cuda.memory_allocated()//(1024**2)}", flush=True)  # 对于不用LOMO的optimizer，这里第二次和第一次输出的差就是optimizer states占的空间，用LOMO则states在第一次输出前的backward过程中就存在了
+                print(f"Memory allocated: {torch.cuda.memory_allocated()//(1024**2)}", flush=True)
                 print(f"Memory reserved: {torch.cuda.memory_reserved()//(1024**2)}", flush=True)
 
             # The below code is only executed during the update step
-            # add grad norm clipping (a kind of grad normalization to make grad norm less or equal to the clipping limit) 我们先不用
+            # add grad norm clipping (a kind of grad normalization to make grad norm less or equal to the clipping limit)
             if args.grad_clipping != 0.0: torch.nn.utils.clip_grad_norm_(trainable_params_float, args.grad_clipping)
 
             if global_rank == 0: pbar.update(1)
@@ -529,7 +482,7 @@ def main(args):
                 scaler.step(optimizer)
                 scaler.update()
                 scheduler.step()
-                optimizer.zero_grad()   # 注意：q-adam-mini的zero_grad()默认将grad设置为None，即会清除其内存占用。不知为何，设置为0还是None对allocated和reserved显存都没有影响
+                optimizer.zero_grad()
 
             update_step += 1
             update_time = time.time() - update_time
@@ -635,12 +588,10 @@ def main(args):
             )
         logger.info(f"Final eval loss: {total_loss}")
 
-    # 主训练进程完成模型、优化器等的checkpoint数据和信息的保存
     if global_rank == 0:
         current_model_directory = f"{args.save_dir}/model_{args.name}_{update_step}"
         logger.info(f"Saving model and optimizer to {current_model_directory}, update step {update_step}")
         os.makedirs(current_model_directory, exist_ok=True)
-        # model.save_pretrained(current_model_directory)  # huggingface的save_pretrained在存模型的时候也是存的state_dict()的返回结果
         saving_model_weight(model, f"{current_model_directory}/pytorch_model.bin")
         
         if not layer_wise_flag:
@@ -665,8 +616,6 @@ def main(args):
         with open(f"{current_model_directory}/training_state.json", "w") as f:
             json.dump(training_state_checkpoint, f, indent=4)
 
-    # del loss, optimizer, scheduler
-    # import gc; gc.collect() # 手动触发python内存垃圾回收机制
     torch.cuda.empty_cache()
 
     logger.info("Script finished successfully")

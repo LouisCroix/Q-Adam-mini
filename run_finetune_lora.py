@@ -1,9 +1,3 @@
-'''
-主要改动：
-import的包换成从q_adam_mini_8bit导入，删除导入其他自定义的包的代码。
-删除和其他自定义包有关的代码。
-为继续训练增加读取之前的optimizer的操作（直接存取optimizer.state_dict即可，我的optimizer实现已经考虑到了Adam-mini新增的优化信息的保存问题）（有需要再进行，大概率不需要，不过用到时要注意，需要读取和保存的有optimizer和optimizer_dict两种可能）
-'''
 import os
 import re
 import time
