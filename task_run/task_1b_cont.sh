@@ -1,8 +1,6 @@
-wandb login --relogin ade2fe7660f00be5a198e4af70789212e11eaae7
-
 torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
     --model_config configs/llama_1b.json \
-    --continue_from /mntcephfs/data/ruoyusun/hanyizhou/q-adam-mini-checkpoints/model_new1_1B_3e-4_256_halfpre_47500 \
+    --continue_from ./q-adam-mini-checkpoints/model_new1_1B_3e-4_256_halfpre_47500 \
     --lr 3e-4 \
     --batch_size 4 \
     --total_batch_size 256 \
@@ -21,6 +19,3 @@ torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
     --stochastic_round \
     --stochastic_round_state \
     --name new1_1B_3e-4_256_halfpre > new1_1B_3e-4_256_halfpre_cont4
-    
-# log文件的作用会被 > 后面的文件取代
-# dtype原为bfloat16，现暂时改为float32

@@ -69,7 +69,7 @@ def parse_args(args):
                         help="Number of tokens to train on. Overwrites num_training_steps. "
                              "You can use M and B suffixes, e.g. 100M or 1B.")
     parser.add_argument("--save_every", type=int, default=5_000)
-    parser.add_argument("--save_dir", type=str, default="/hanyizhou/quant_adam_mini/q-adam-mini-checkpoints")
+    parser.add_argument("--save_dir", type=str, default="./q-adam-mini-checkpoints")
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument("--name", type=str, default='test')
     parser.add_argument("--dtype", type=str, default="bfloat16" if torch.cuda.is_bf16_supported() else "float32")
@@ -109,7 +109,7 @@ def parse_args(args):
 @torch.no_grad()
 def evaluate_model(model, tokenizer, pad_idx, global_rank, world_size, device, batch_size):
     _time = time.time()
-    val_data = datasets.load_dataset("/hanyizhou/quant_adam_mini/datasets/c4_val", split="validation", streaming=True) #DGX
+    val_data = datasets.load_dataset("./datasets/c4_val", split="validation", streaming=True) #DGX
     val_data = val_data.shuffle(seed=42)
     logger.info(f"Loaded validation dataset in {time.time() - _time:.2f} seconds")
 
@@ -225,7 +225,7 @@ def main(args):
 
     # it doesn't matter which tokenizer we use, because we train from scratch
     # T5 tokenizer was trained on C4 and we are also training on C4, so it's a good choice
-    tokenizer = AutoTokenizer.from_pretrained("/hanyizhou/models/snapshots/01c7f73d771dfac7d292323805ebc428287df4f9", max_length=args.max_length)
+    tokenizer = AutoTokenizer.from_pretrained("./models/snapshots/01c7f73d771dfac7d292323805ebc428287df4f9", max_length=args.max_length)
     tokenizer.add_special_tokens({"pad_token": "<<PAD>>"})
     print(f"\npad_token_id: {tokenizer.pad_token_id}\n")
     

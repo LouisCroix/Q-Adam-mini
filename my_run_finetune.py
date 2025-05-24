@@ -83,7 +83,7 @@ def parse_args(args):
     #                     help="Number of tokens to train on. Overwrites num_training_steps. "
     #                          "You can use M and B suffixes, e.g. 100M or 1B.")
     # parser.add_argument("--save_every", type=int, default=5_000)
-    parser.add_argument("--save_dir", type=str, default="/mntcephfs/data/ruoyusun/hanyizhou/q-adam-mini-checkpoints")
+    parser.add_argument("--save_dir", type=str, default="./q-adam-mini-checkpoints")
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument("--name", type=str, default='test')
     parser.add_argument("--dtype", type=str, default="bfloat16" if torch.cuda.is_bf16_supported() else "float32")
@@ -192,9 +192,9 @@ def evaluate_model(accelerator, model, tokenizer, pad_idx, world_size, batch_siz
     assert part in ["validation", "test"], "part of dataset for this function to use must be validation or test"
     _time = time.time()
     # if task == "mmlu":
-    val_data = datasets.load_from_disk(f"/home/hanyizhou/datasets/mmlu/all/{part}")
+    val_data = datasets.load_from_disk(f"./datasets/mmlu/all/{part}")
     # elif task == "gsm":
-    #     val_data = datasets.load_from_disk(f"/home/hanyizhou/datasets/gsm8k/main/test")
+    #     val_data = datasets.load_from_disk(f"./datasets/gsm8k/main/test")
     val_data = val_data.shuffle(seed=42)
     metric = evaluate.load("accuracy")
     logger.info(f"Loaded {part} dataset and metric in {time.time() - _time:.2f} seconds")
@@ -326,10 +326,10 @@ def main(args):
 
     # 数据加载并分布到不同设备
     if args.task == "mmlu":
-        data = datasets.load_from_disk(f"/home/hanyizhou/datasets/mmlu/all/auxiliary_train")
+        data = datasets.load_from_disk(f"./datasets/mmlu/all/auxiliary_train")
         partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
     elif args.task == "gsm":
-        data = datasets.load_from_disk(f"/home/hanyizhou/datasets/gsm8k/main/train")
+        data = datasets.load_from_disk(f"./datasets/gsm8k/main/train")
         partial_prompt_gene = functools.partial(gsm_prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
     seed_for_shuffle = 42 
 

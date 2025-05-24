@@ -10,7 +10,7 @@
 
 torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
     --model_config configs/llama_1b.json \
-    --continue_from /mntcephfs/data/ruoyusun/hanyizhou/q-adam-mini-checkpoints/model_AdamW-1B_3e-4_256_halfpre_37500 \
+    --continue_from ./q-adam-mini-checkpoints/model_AdamW-1B_3e-4_256_halfpre_37500 \
     --lr 3e-4 \
     --batch_size 4 \
     --total_batch_size 256 \

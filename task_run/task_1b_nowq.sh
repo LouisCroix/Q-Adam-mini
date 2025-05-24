@@ -1,13 +1,3 @@
-#!/bin/bash
-#SBATCH -J q-adam-mini
-#SBATCH -A L00120230003
-#SBATCH -p p-A100
-#SBATCH -N 1
-#SBATCH -c 4
-#SBATCH --gres=gpu:1
-#SBATCH -o %j.log
-#SBATCH -e %j.err
-
 torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
     --model_config configs/llama_1b.json \
     --lr 3e-4 \
@@ -27,6 +17,3 @@ torchrun --standalone --nproc_per_node 1 my_run_pretrain_halfpre.py \
     --stochastic_round \
     --stochastic_round_state \
     --name new1_1B_3e-4_256_nowq_halfpre > new1_1B_3e-4_256_nowq_halfpre
-    
-# log文件的作用会被 > 后面的文件取代
-# dtype原为bfloat16，现暂时改为float32

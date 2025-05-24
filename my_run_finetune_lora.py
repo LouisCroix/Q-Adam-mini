@@ -71,7 +71,7 @@ def parse_args(args):
     #                     help="Number of tokens to train on. Overwrites num_training_steps. "
     #                          "You can use M and B suffixes, e.g. 100M or 1B.")
     # parser.add_argument("--save_every", type=int, default=5_000)
-    parser.add_argument("--save_dir", type=str, default="/hanyizhou/quant_adam_mini/q-adam-mini-checkpoints")
+    parser.add_argument("--save_dir", type=str, default="./q-adam-mini-checkpoints")
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument("--name", type=str, default='test')
     parser.add_argument("--dtype", type=str, default="bfloat16" if torch.cuda.is_bf16_supported() else "float32")
@@ -150,11 +150,11 @@ def evaluate_model(model, tokenizer, pad_idx, batch_size, part="validation"):
     assert part in ["validation", "test"], "part of dataset for this function to use must be validation or test"
     _time = time.time()
     # if task == "mmlu":
-    val_data = datasets.load_from_disk(f"/hanyizhou/quant_adam_mini/datasets/mmlu/all/{part}")
+    val_data = datasets.load_from_disk(f"./datasets/mmlu/all/{part}")
     # elif task == "gsm":
-    #     val_data = datasets.load_from_disk(f"/hanyizhou/quant_adam_mini/datasets/gsm8k/main/test")
+    #     val_data = datasets.load_from_disk(f"./datasets/gsm8k/main/test")
     val_data = val_data.shuffle(seed=42)
-    metric = evaluate.load("/hanyizhou/quant_adam_mini/evaluate-main/evaluate-main/metrics/accuracy")
+    metric = evaluate.load("./evaluate-main/evaluate-main/metrics/accuracy")
     logger.info(f"Loaded {part} dataset and metric in {time.time() - _time:.2f} seconds")
 
     # if not args.single_gpu:
@@ -266,15 +266,15 @@ def main(args):
 
     # 数据加载并分布到不同设备
     if args.task == "mmlu":
-        val_data = datasets.load_from_disk(f"/hanyizhou/quant_adam_mini/datasets/mmlu/all/validation")
+        val_data = datasets.load_from_disk(f"./datasets/mmlu/all/validation")
         partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
         val_dataset = val_data.map(partial_prompt_gene, batched=True, batch_size=1000, remove_columns=val_data.column_names)
         
-        data = datasets.load_from_disk(f"/hanyizhou/quant_adam_mini/datasets/mmlu/all/auxiliary_train")
+        data = datasets.load_from_disk(f"./datasets/mmlu/all/auxiliary_train")
         partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
         
     elif args.task == "gsm":
-        data = datasets.load_from_disk(f"/hanyizhou/quant_adam_mini/datasets/gsm8k/main/train")
+        data = datasets.load_from_disk(f"./datasets/gsm8k/main/train")
         partial_prompt_gene = functools.partial(gsm_prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
 
     dataset = data.map(partial_prompt_gene, batched=True, batch_size=1000, remove_columns=data.column_names)
@@ -304,7 +304,7 @@ def main(args):
     #     min_lr_ratio=args.min_lr_ratio,
     # )
     
-    metric = evaluate.load("/hanyizhou/quant_adam_mini/evaluate-main/evaluate-main/metrics/accuracy")
+    metric = evaluate.load("./evaluate-main/evaluate-main/metrics/accuracy")
     
     def compute_metrics(eval_pred, compute_result):
         logits, labels = eval_pred
@@ -444,7 +444,7 @@ def main(args):
         
         trainer.evaluate()  # also triggers wandbcallback
         
-        test_data = datasets.load_from_disk(f"/hanyizhou/quant_adam_mini/datasets/mmlu/all/test")
+        test_data = datasets.load_from_disk(f"./datasets/mmlu/all/test")
         test_data = test_data.shuffle(seed=42)
         partial_prompt_gene = functools.partial(prompt_generator, tokenizer=tokenizer, max_length=args.max_length)
         test_dataset = test_data.map(partial_prompt_gene, batched=True, batch_size=1000, remove_columns=test_data.column_names)

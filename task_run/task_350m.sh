@@ -9,7 +9,7 @@
 #SBATCH -e %j.err
 
 torchrun --standalone --nproc_per_node 1 ../my_run_pretrain_halfpre.py \
-    --model_config /home/hanyizhou/Q-Adam-mini/configs/llama_350m.json \
+    --model_config ./configs/llama_350m.json \
     --lr 5e-4 \
     --batch_size 16 \
     --total_batch_size 256 \

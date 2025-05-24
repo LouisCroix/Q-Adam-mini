@@ -1,5 +1,3 @@
-wandb login --relogin ade2fe7660f00be5a198e4af70789212e11eaae7
-
 torchrun --standalone --nproc_per_node 1 ../my_run_pretrain_halfpre.py \
     --model_config ../configs/llama_1b.json \
     --lr 3e-4 \
@@ -17,6 +15,3 @@ torchrun --standalone --nproc_per_node 1 ../my_run_pretrain_halfpre.py \
     --project '1B-weight_test' \
     --weight_group_size 256 \
     --name 32+8-only-embedding/lm_head-stochastic
-    
-# log文件的作用会被 > 后面的文件取代
-# dtype原为bfloat16，现暂时改为float32

@@ -11,15 +11,15 @@ from peft import LoraConfig, PeftModel
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # dataset_name = "openai/gsm8k"
-dataset = load_from_disk(f"/home/hanyizhou/datasets/gsm8k/main/test")
+dataset = load_from_disk(f"./datasets/gsm8k/main/test")
 
-tokenizer_path = "/mntcephfs/data/ruoyusun/liziniu/.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6"
+tokenizer_path = "./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6"
 # Load model and tokenizer
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 tokenizer.add_special_tokens({"pad_token": "<<PAD>>"})
 
-model_path = "/mntcephfs/data/ruoyusun/hanyizhou/q-adam-mini-checkpoints/model_AdamW-llama_lora_gsm_2e-5_80_128_256_halfpre"
-# model_path = "/mntcephfs/data/ruoyusun/liziniu/.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6"
+model_path = "./q-adam-mini-checkpoints/model_AdamW-llama_lora_gsm_2e-5_80_128_256_halfpre"
+# model_path = "./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6"
 if "lora" in model_path:
     lora_config = LoraConfig.from_pretrained(model_path)
     new_model = AutoModelForCausalLM.from_pretrained(lora_config.base_model_name_or_path).to(device)

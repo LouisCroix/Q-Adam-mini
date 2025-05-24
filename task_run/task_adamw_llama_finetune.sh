@@ -9,7 +9,7 @@
 #SBATCH -e %j.err
 
 # python my_run_finetune.py \
-#     --model /mntcephfs/data/ruoyusun/liziniu/.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
+#     --model ./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
 #     --task gsm \
 #     --lr 2e-6 \
 #     --batch_size 2 \
@@ -24,7 +24,7 @@
 #     --name AdamW-llama_gsm_2e-6_256_halfpre > AdamW_llama_gsm_2e-6_256_halfpre
 
 accelerate launch ../my_run_finetune.py \
-    --model /mntcephfs/data/ruoyusun/liziniu/.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
+    --model ./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
     --task gsm \
     --lr 2e-6 \
     --batch_size 2 \

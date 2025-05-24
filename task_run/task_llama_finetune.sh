@@ -9,7 +9,7 @@
 #SBATCH -e %j.err
 
 torchrun --standalone --nproc_per_node 1 my_run_finetune.py \
-    --model /mntcephfs/data/ruoyusun/liziniu/.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
+    --model ./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
     --lr 2e-6 \
     --batch_size 1 \
     --total_batch_size 80 \
@@ -29,8 +29,8 @@ torchrun --standalone --nproc_per_node 1 my_run_finetune.py \
 
 # deepspeed --num_gpus=1 my_run_finetune.py \
 #     --deepspeed \
-#     --deepspeed_config /home/hanyizhou/Q-Adam-mini/ds_configs/config.json \
-#     --model /mntcephfs/data/ruoyusun/liziniu/.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
+#     --deepspeed_config ./ds_configs/config.json \
+#     --model ./.cache/huggingface/hub/models--meta-llama--Meta-Llama-3-8B/snapshots/62bd457b6fe961a42a631306577e622c83876cb6 \
 #     --lr 2e-6 \
 #     --batch_size 1 \
 #     --total_batch_size 80 \
